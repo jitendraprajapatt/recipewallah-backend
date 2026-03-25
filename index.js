@@ -45,7 +45,7 @@ fs.mkdirSync(uploadsDir, { recursive: true })
 
 const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN })
 
-const corsOrigin = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+const corsOrigin = (process.env.CORS_ORIGIN ?? 'https://preeminent-pudding-2f9e20.netlify.app')
   .split(',')
   .map((entry) => entry.trim())
   .filter(Boolean)
