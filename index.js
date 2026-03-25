@@ -17,8 +17,8 @@ dotenv.config()
 
 const app = express()
 const port = Number(process.env.PORT ?? 5000)
-const mongoUri = process.env.MONGODB_URI
-const jwtSecret = process.env.JWT_SECRET
+const mongoUri = process.env.MONGODB_URI ?? 'mongodb+srv://RecipeWallah:Recipe%400077@rwdatabase.v1wiawp.mongodb.net/?retryWrites=true&w=majority&appName=RWDatabase'
+const jwtSecret = process.env.JWT_SECRET ?? 'recipewallah'
 
 const authDbName = (process.env.AUTH_DB_NAME ?? 'auth').trim()
 const authCollectionName = (process.env.AUTH_COLLECTION_NAME ?? 'user').trim()
@@ -45,23 +45,25 @@ fs.mkdirSync(uploadsDir, { recursive: true })
 
 const dbx = new Dropbox({ accessToken: process.env.DROPBOX_ACCESS_TOKEN })
 
-const corsOrigin = (process.env.CORS_ORIGIN ?? 'https://preeminent-pudding-2f9e20.netlify.app')
+const corsOriginInput = (process.env.CORS_ORIGIN ?? 'https://preeminent-pudding-2f9e20.netlify.app')
+const corsOrigin = corsOriginInput
   .split(',')
   .map((entry) => entry.trim())
   .filter(Boolean)
 
-// Clean origins (remove trailing slashes) and add variants
-const finalOrigins = []
-corsOrigin.forEach(origin => {
-  const base = origin.replace(/\/+$/, '')
-  finalOrigins.push(base)
-  if (!base.endsWith('/')) finalOrigins.push(`${base}/`)
-})
+// Add mandatory origins to ensure it always works
+const allowedOrigins = [
+  ...corsOrigin,
+  'https://preeminent-pudding-2f9e20.netlify.app',
+  'https://preeminent-pudding-2f9e20.netlify.app/',
+  'http://localhost:5173',
+  'http://localhost:3000'
+]
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || finalOrigins.includes(origin.replace(/\/+$/, '')) || finalOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes(`${origin}/`)) {
         callback(null, true)
       } else {
         console.warn('CORS blocked for origin:', origin)
