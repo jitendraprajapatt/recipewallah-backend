@@ -50,9 +50,25 @@ const corsOrigin = (process.env.CORS_ORIGIN ?? 'https://preeminent-pudding-2f9e2
   .map((entry) => entry.trim())
   .filter(Boolean)
 
+// Clean origins (remove trailing slashes) and add variants
+const finalOrigins = []
+corsOrigin.forEach(origin => {
+  const base = origin.replace(/\/+$/, '')
+  finalOrigins.push(base)
+  if (!base.endsWith('/')) finalOrigins.push(`${base}/`)
+})
+
 app.use(
   cors({
-    origin: corsOrigin.length === 1 ? corsOrigin[0] : corsOrigin,
+    origin: (origin, callback) => {
+      if (!origin || finalOrigins.includes(origin.replace(/\/+$/, '')) || finalOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        console.warn('CORS blocked for origin:', origin)
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true,
   })
 )
 app.use(express.json())
